@@ -41,8 +41,10 @@ function getmatrix()
     header = matrix[1, 2:end]
 
     # Strip matrix of the first col / first row (we only need the numbers)
-    return matrix[2:end, 2:end]
+    return (header, matrix[2:end, 2:end])
 end
+
+
 
 
 # TODO enum? i.e. number 1 - 20 (exactly) that corresponds to a particular AA
@@ -59,10 +61,16 @@ function getaminomap()
 end
 
 # Get index from a given AA character 
-function aminoindex(aa)
 
-    #TODO
-    return 1
+# TODO use map instead of this
+function aminoindex(aa, header)
+
+    for i in 1:length(header)
+        if aa == header[i]
+            return i 
+        end
+    end 
+    
 
 
 
@@ -119,11 +127,25 @@ end
 
 # Make dict?      Dict(x->f(x) for ....)
 
+#function get_weights()
+
+
 function main()
     
-    items = ["A", "B", "C", "D"]
+    
 
-    weights = [2, 4, 2, 12]
+    AA = ARGS[1]
+    println("Amino acid ", AA, ":")
+    println("-------------------------")
+
+    # Assign weights based on our current AA
+
+    header, matrix = getmatrix()
+
+    items = header
+    #weights = [2, 4, 2, 12]
+    weights = matrix[1:end, aminoindex(AA, header)]
+
 
 
 
@@ -135,7 +157,7 @@ function main()
 
     # Sample randomly
 
-    total = 10^6
+    total = 10^3
 
     for i in 1:total
         x = sample(items, weights)
@@ -151,7 +173,7 @@ function main()
 
     println()
     
-    matrix = getmatrix()
+    
 
     
 
