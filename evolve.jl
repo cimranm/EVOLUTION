@@ -19,7 +19,7 @@ function sample(items, weights)
     random = rand()
 
     for index in 1:length(items)
-        if random < distribution[index]
+        if random <= distribution[index]
             return items[index]
         end
     end
