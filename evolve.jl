@@ -32,6 +32,9 @@ using CSV
 const GENERATIONS = 500
 
 
+submatrix = [[]]
+
+
 function getmatrix()
 
     filename = "matrix.txt"
@@ -45,15 +48,14 @@ function getmatrix()
 end
 
 
-
-
 # TODO enum? i.e. number 1 - 20 (exactly) that corresponds to a particular AA
 
 # Map indexes to AAs (have a way to not hardcode this; but get it from the matrix CSV)
 function getaminomap()
 
     d = Dict(
-        "A" => 1
+        'A' => 1
+
     )
 
 
@@ -63,17 +65,16 @@ end
 # Get index from a given AA character 
 
 # TODO use map instead of this
-function aminoindex(aa, header)
 
-    for i in 1:length(header)
-        if aa == header[i]
+
+# Get index where AA occurs in array 
+function aminoindex(AA, array)
+
+    for i in 1:length(array)
+        if AA == array[i]
             return i 
         end
     end 
-    
-
-
-
 end
 
 
@@ -129,16 +130,115 @@ end
 
 #function get_weights()
 
+# seq::Vector 
+
+function mutate()
+    return 'B'
+end 
+
+function getweights(AA)
+
+    substitutions, matrix  = getmatrix()
+    index   = aminoindex(AA, substitutions)
+    weights = matrix[1:end, index]
+    return weights
+end
+
+
+function evolve!(seq::Vector{Char})
+
+    #=
+    AA = "A"
+    substitutions, matrix  = getmatrix()
+
+    index   = aminoindex(AA, substitutions)
+    weights = matrix[1:end, index]
+
+    # TODO Function that mutates a single amino acid (AA) 
+    #f(x) = sample(substitutions, weights)
+
+    # Function that returns index number of AA
+    f(x) = aminoindex(x, header)
+    
+    =#
+    # TODO Mutate each amino acid within sequence 
+    #=
+    for i in 1:length(seq)
+        AA = seq[i]
+        seq[i] = f(AA)
+    end
+    =#
+    
+
+    #=
+    g(x) = 'C' #sample(substitutions, getweights(x))
+
+
+    broadcast!(g, seq, seq)  # Broadcast to every element 
+
+    =#
+
+    substitutions, matrix  = getmatrix()
+
+
+    substitutions = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'Z']
+
+    for AA in 1:length(seq)
+
+        index   = aminoindex(seq[AA], substitutions)   # TODO surely there's a builtin function for this..?
+
+        weights = matrix[1:end, index]
+
+        seq[AA] = sample(substitutions, weights)
+
+    end 
+    
+end
 
 function main()
     
-    
+    #=
+    # what it should look like:
 
-    AA = ARGS[1]
-    println("Amino acid ", AA, ":")
+    seq = input()
+
+    for generation in 1:GENERATIONS
+        evolve!(seq)
+
+    end
+
+
+
+
+    =#
+
+
+    seq = ARGS[1]
+
+    # Convert from string to vector 
+    seq = Vector{Char}(seq)
+
+    println("SEQUENCE: ", seq, ":")
     println("-------------------------")
 
-    # Assign weights based on our current AA
+    println("EVOLVING...")
+
+    #getmatrix()
+
+
+    for i in 1:10^2
+
+        
+        evolve!(seq)
+        line = join(seq)
+        println(line)
+
+    end
+
+
+
+    #=PROBABILITY ANALYSIS:
+
 
     header, matrix = getmatrix()
 
@@ -173,7 +273,7 @@ function main()
 
     println()
     
-    
+    =#
 
     
 
