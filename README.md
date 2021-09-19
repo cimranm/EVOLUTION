@@ -1,13 +1,36 @@
 # EVOLUTION
 
-Simulate evolving a sequence
+Simulate evolving an amino acid sequence
 
 [Spec](http://www.cse.unsw.edu.au/~bi3020/21T3/spec11.html)
 
 
+```bash 
+wget http://www.cse.unsw.edu.au/~bi3020/21T3/sample_seqs.zip
+unzip sample_seqs.zip 
 ```
-$ wget http://www.cse.unsw.edu.au/~bi3020/21T3/sample_seqs.zip
-$ unzip sample_seqs.zip 
+
+## Hardcoding matrix.txt to Julia matrix 
+
+```bash
+# Getting from text to matrix in julia
+cat matrix.txt | cut -d ',' -f2-22 | tr , ' ' >> evolve.jl 
+
+# Display words per line; should be 20 (quick check to make sure we haven't left out any AAs) 
+awk '{print (NF, $0)}' 
+```
+
+
+## DEPENDENCIES 
+
+Uses FASTX package from BioJulia.  Can be installed from Julia using REPL 
+```bash
+$ julia 
+``` 
+
+```julia 
+using Pkg 
+Pkg.add("FASTX")
 ```
 
 
