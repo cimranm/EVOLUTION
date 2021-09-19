@@ -2,6 +2,9 @@
 
 using DelimitedFiles
 
+using BioSequences
+using FASTX
+
 using CSV
 
 # TODO: 
@@ -196,44 +199,38 @@ function evolve!(seq::Vector{Char})
 end
 
 function main()
-    
-    #=
-    # what it should look like:
-
-    seq = input()
-
-    for generation in 1:GENERATIONS
-        evolve!(seq)
-
-    end
-
-
-
-
-    =#
-
 
     seq = ARGS[1]
 
     # Convert from string to vector 
     seq = Vector{Char}(seq)
 
-    println("SEQUENCE: ", seq, ":")
-    println("-------------------------")
+    # Read FASTA formatted sequence from STDIN 
+    r = FASTA.Reader(stdin)
 
-    println("EVOLVING...")
+    description = "SEQUENCE"
 
-    #getmatrix()
+    # Write FASTA formatted sequences to STDOUT
+    w = FASTA.Writer(stdout, width=60)
 
 
-    for i in 1:10^2
+    # Write initial sequence numbered `0`
+    rec = FASTA.Record("$description  0", join(seq))
+    write(w, rec)
 
+    for i in 1:GENERATIONS
         
-        evolve!(seq)
-        line = join(seq)
-        println(line)
+        evolve!(seq)    # Evolve the sequence by 1 generation 
 
+        # Make a FASTA record containing the description, the generation number, and the new sequence.
+        # Write to STDOUT. 
+        rec = FASTA.Record("$description  $i", join(seq))
+        write(w, rec)
     end
+
+    close(w)
+    close(r)
+
 
 
 
