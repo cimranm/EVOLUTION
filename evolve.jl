@@ -108,7 +108,6 @@ function evolve!(seq::Vector{Char})
     # respective weights.  Then place these weights on a distribution
     # from which a sample is taken randomly.  The amino acid at this 
     # point of the sequence is set to be the result of this 'sampling'. 
-
     for AA in 1:length(seq)
         weights = getweights(seq[AA])               # Get weights for this AA transitioning (i.e. column in submatrix)
         seq[AA] = sample(SUBSTITUTIONS, weights)    # 'Mutate' this particular AA randomly 
@@ -156,7 +155,6 @@ function main()
 
     # For each generation, evolve the sequence and output it as a new FASTA record
     for i in 1:GENERATIONS
-
         evolve!(seq)    # Evolve the sequence by 1 generation 
 
         # Make a FASTA record containing the description, the generation number, and the new sequence.
