@@ -13,6 +13,11 @@ Written by Cam McMenamie
 using FASTX     # BioJulia / FASTX.jl       https://biojulia.net 
 
 """
+TODO 
+Detect AAs that aren't real 
+"""
+
+"""
 Global variables
 """
 const GENERATIONS = 500
@@ -77,6 +82,7 @@ function sample(items, weights)
     f(x, y) = x / y
     weights = f.(weights, sum(weights))         # TODO modify in place with broadcast? 
 
+
     # Get the index that our random number 'falls' on
     distribution = cumsum(weights)
     random = rand()
@@ -98,6 +104,7 @@ function getweights(AA)
     return SUBMATRIX[1:end, index]      # Return the column from the substitution matrix
 end
 
+
 """
 Evolve a sequence by 1 generation.  Mutable i.e. changes the given array.
 """
@@ -112,6 +119,18 @@ function evolve!(seq::Vector{Char})
         weights = getweights(seq[AA])               # Get weights for this AA transitioning (i.e. column in submatrix)
         seq[AA] = sample(SUBSTITUTIONS, weights)    # 'Mutate' this particular AA randomly 
     end 
+end
+
+"""
+Check that AA sequence is valid
+"""
+function validate(seq::Vector{Char})
+
+    for c in seq
+        if c ∉ SUBSTITUTIONS
+            error("Not a valid amino acid: $c")
+        end
+    end
 end
 
 """
@@ -153,6 +172,10 @@ function main()
     #   ** Strings are immutable 
     seq = Vector{Char}(seq)
 
+    validate(seq)
+
+
+
     # For each generation, evolve the sequence and output it as a new FASTA record
     for i in 1:GENERATIONS
         evolve!(seq)    # Evolve the sequence by 1 generation 
@@ -169,3 +192,8 @@ end
 
 # Run main function
 main()
+
+
+
+
+
