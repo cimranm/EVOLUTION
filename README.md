@@ -15,6 +15,7 @@ unzip sample_seqs.zip
 ```bash
 # Getting from text to matrix in julia
 cat matrix.txt | cut -d ',' -f2-22 | tr , ' ' >> evolve.jl 
+cat BLOSUM62.txt | cut -f2-24 >> align.jl
 
 # Display words per line; should be 20 (quick check to make sure we haven't left out any AAs) 
 awk '{print (NF, $0)}' 
