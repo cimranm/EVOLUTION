@@ -13,11 +13,6 @@ Written by Cam McMenamie
 using FASTX     # BioJulia / FASTX.jl       https://biojulia.net 
 
 """
-TODO 
-Detect AAs that aren't real 
-"""
-
-"""
 Global variables
 """
 const GENERATIONS = 500
