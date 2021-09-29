@@ -122,7 +122,7 @@ function evolve!(seq::Vector{Char})
 end
 
 """
-Check that AA sequence is valid
+Check that AA sequence is valid. 
 """
 function validate(seq::Vector{Char})
 
@@ -161,18 +161,21 @@ function main()
     seq = sequence(rec)
     seq = convert(String, seq)  # Represent our sequence as a String 
 
-    # Writer for sending FASTA formatted sequences to STDOUT
-    w = FASTA.Writer(stdout, width=60)
-
-    # Write initial sequence numbered `0`
-    rec = FASTA.Record("$id  0", seq)
-    write(w, rec)
-
     # Convert sequence from String** to an array of characters (so each character can be mutated individually)
     #   ** Strings are immutable 
     seq = Vector{Char}(seq)
 
+    # Check that sequence is valid
     validate(seq)
+
+    # Writer for sending FASTA formatted sequences to STDOUT
+    w = FASTA.Writer(stdout, width=60)
+
+    # Write initial sequence numbered `0`
+    rec = FASTA.Record("$id  0", join(seq))
+    write(w, rec)
+
+    
 
 
 
