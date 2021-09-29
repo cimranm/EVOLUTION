@@ -175,10 +175,6 @@ function main()
     rec = FASTA.Record("$id  0", join(seq))
     write(w, rec)
 
-    
-
-
-
     # For each generation, evolve the sequence and output it as a new FASTA record
     for i in 1:GENERATIONS
         evolve!(seq)    # Evolve the sequence by 1 generation 
