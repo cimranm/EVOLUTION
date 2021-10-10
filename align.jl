@@ -22,7 +22,7 @@ using FASTX     # BioJulia / FASTX.jl       https://biojulia.net
 Global variables
 """
 const SUBSTITUTIONS = ['A', 'B', 'C', 'D', 'E',	'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z']
-const BLOSUM62 = [
+const MATRIX = [
 
     #A 	B 	C 	D 	E 	F 	G 	H 	I 	K 	L 	M 	N 	P 	Q 	R 	S 	T 	V 	W 	X 	Y 	Z
     4 	-2 	0 	-2 	-1 	-2 	0 	-2 	-1 	-1 	-1 	-1 	-2 	-1 	-1 	-1 	1 	0 	0 	-3 	-1 	-2 	-1
@@ -49,14 +49,7 @@ const BLOSUM62 = [
     -2 	-3 	-2 	-3 	-2 	3 	-3 	2 	-1 	-2 	-1 	-1 	-2 	-3 	-1 	-2 	-2 	-2 	-1 	2 	-1 	7 	-2
     -1 	2 	-4 	2 	5 	-3 	-2 	0 	-3 	1 	-3 	-2 	0 	-1 	2 	0 	0 	-1 	-2 	-3 	-1 	-2 	5]
 
-const NUCLEOTIDES = ['A', 'C', 'G', 'T']
-const MATRIX = [
-    2 0 0 0
-    0 2 0 0
-    0 0 2 0
-    0 0 0 2]
-
-const GAP_OPEN = 2
+const GAP_OPEN = 7
 const GAP_EXTEND = 1
 
 # 'Enum' for pointer matrix 
@@ -68,8 +61,8 @@ const POINTER_INSERTY   = 3
 Get index for matrix from letter.  TODO Change back to AA
 """
 function getindex(a::Char)
-    for i in 1:length(NUCLEOTIDES)
-        if NUCLEOTIDES[i] == a 
+    for i in 1:length(SUBSTITUTIONS)
+        if SUBSTITUTIONS[i] == a 
             return i
         end 
     end
@@ -387,11 +380,11 @@ function main()
     end
     =#
 
-
-    a = "GAACGT"
+    a = "AGGCTYAGYA"
+    b = "RACCPP"
     a = Vector{Char}(a)
-    b = "GAT"
     b = Vector{Char}(b)
+
     align(a, b)
 
         # TODO make 'alignment' object? so you can do 
