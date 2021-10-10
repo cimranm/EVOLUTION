@@ -106,6 +106,15 @@ function align(a::Vector{Char}, b::Vector{Char})
     Ix =    Matrix(undef, m, n)
     Iy =    Matrix(undef, m, n)
 
+    # Initialise to minus infinity to ensure 'max' is chosen (certain cells in matrices might be undefined)
+    for i in 1:m 
+        for j in 1:n 
+            S[i, j] = -Inf
+            Ix[i, j] = -Inf
+            Iy[i, j] = -Inf 
+        end
+    end
+
     # INITIALISE ORIGIN
     S[1, 1] = 0 
     Ix[1, 1] = 0
@@ -129,14 +138,33 @@ function align(a::Vector{Char}, b::Vector{Char})
         Ix[1, j] = val
     end
 
-    println("S: ")
+
+
+    
+    for i in 2:m 
+        for j in 2:n
+
+            # Set S to be max(continue match, end insertion in x, end insertion in y)
+
+             # index a and b with -1 to account for index offset
+            match = matchscore(a[i-1], b[j-1])
+            S[i, j] =   max(S[i-1, j-1] + match,
+                        Ix[i-1, j-1] + match,
+                        Iy[i-1, j-1] + match)  
+                        
+            # Set Ix 
+            Ix[i, j] =  max(S[i-1, j] - GAP_OPEN,
+                            Ix[i-1, j] - GAP_EXTEND)
+
+            Iy[i, j] =  max(S[i, j-1] - GAP_OPEN, 
+                            Iy[i, j-1] - GAP_EXTEND)
+
+        end
+    end
+
     display(S)
 
-    println("Ix: ")
-    display(Ix)
 
-    println("Iy: ")
-    display(Iy)
     
 
     #=
@@ -149,9 +177,6 @@ function align(a::Vector{Char}, b::Vector{Char})
 
 
     """
-    Initialise origin
-    Initialise top row
-    Initialise left column 
 
     For i 
         for j 
