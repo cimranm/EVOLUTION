@@ -21,6 +21,14 @@ cat BLOSUM62.txt | cut -f2-24 >> align.jl
 awk '{print (NF, $0)}' 
 ```
 
+## USAGE
+
+Reads from STDIN and writes to STDOUT.  FASTA formats accepted.  
+
+```bash
+usage:  
+evolve < seq | align > outfile
+```
 
 ## DEPENDENCIES 
 
