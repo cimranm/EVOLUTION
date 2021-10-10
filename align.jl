@@ -6,10 +6,14 @@
 # Needleman-Wunsch algorithm 
 # -----------------------------------------------------
 
-# usage:  align < INFILE > OUTFILE 
-# 
+usage:  align < INFILE > OUTFILE
+
+evolve < INFILE | align > OUTFILE 
+
+
+
 # Treats first sequence as 'reference' sequence; compares all sequences to this first sequence
-# Outputs alignm
+# Outputs alignment number, score, and percentage identity (tab-delimited)
 
 julia version 1.6.2
 
@@ -78,7 +82,6 @@ function matchscore(a::Char, b::Char)
     return MATRIX[i, j]
 end
 
-
 """
 Align two sequences. 
 """
@@ -86,9 +89,6 @@ function align(a::Vector{Char}, b::Vector{Char})
 
     m = length(a) + 1
     n = length(b) + 1
-
-    println("M: $m")
-
 
     # Create matrices 
     S =     Matrix(undef, m, n)
@@ -133,9 +133,6 @@ function align(a::Vector{Char}, b::Vector{Char})
         Ix[1, j] = val
     end
 
-
-
-    
     for i in 2:m 
         for j in 2:n
 
@@ -188,6 +185,8 @@ function align(a::Vector{Char}, b::Vector{Char})
         end
     end
 
+    #display(S)
+
     # Backtracing
     aout = []
     bout = []
@@ -195,6 +194,11 @@ function align(a::Vector{Char}, b::Vector{Char})
     
     i = m 
     j = n 
+
+    score = S[i, j]
+
+    k = 0   # Alignment length 
+    id = 0  # Number of exact matches 
     
     while i > 1 && j > 1 
 
@@ -208,6 +212,11 @@ function align(a::Vector{Char}, b::Vector{Char})
 
             push!(aout, a[iprev-1])
             push!(bout, b[jprev-1])
+
+            # Check if match 
+            if a[iprev-1] == b[jprev-1]
+                id += 1
+            end 
 
         elseif P[i, j] == POINTER_INSERTX 
 
@@ -223,10 +232,14 @@ function align(a::Vector{Char}, b::Vector{Char})
 
         end
 
+        k += 1  # increment counter 
+
     end 
 
-    println(join(aout))
-    println(join(bout))
+    percentid = 100 * (id / k) 
+    return score, percentid
+
+    
 
 
     #=
@@ -366,29 +379,17 @@ function main()
     REFSEQ = Vector{Char}(seq)
     validate(REFSEQ)           # Check for invalid letter codes
 
-    #=
+    n = 0 
     for seq in sequences
 
-        alignment = align(seq, REFSEQ)
+        score, id = align(seq, REFSEQ)
 
         # Output
-        n = 1
-        score = 2
-        id = 0.80
         println("$n\t$score\t$id")
         
-    end
-    =#
-
-    a = "AGGCTYAGYA"
-    b = "RACCPP"
-    a = Vector{Char}(a)
-    b = Vector{Char}(b)
-
-    align(a, b)
-
-        # TODO make 'alignment' object? so you can do 
-        # alignment.getscore() or something?
+        n += 1
+        
+    end    
 end
 
 # Run main function
