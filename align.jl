@@ -1,4 +1,14 @@
 #! /usr/bin/env julia
+
+"""TODO
+
+- don't show stacktrace when throwing error
+
+
+"""
+
+
+
 """
 # ALIGNMENT
 # implementation of Global Alignment 
@@ -56,6 +66,60 @@ function align(a::Vector{Char}, b::Vector{Char})
 
     m = length(a)
     n = length(b)
+
+
+
+    """
+    Initialise origin
+    Initialise top row
+    Initialise left column 
+
+    For i 
+        for j 
+
+            down =      # work out affine; i.e. if previous had gap opening or what
+            across = 
+
+            S[i, j] = min(diagonal + score(i, j), down, up)
+            
+            assign x, y
+
+
+    """
+
+
+    # 
+    """
+    Traceback 
+    
+    i = m+1
+    j = n+1
+    k = 0   # alignment length 
+    id = 0  # count of identical residues matches
+
+    while (i > 1 or j > 1) 
+        iprev = x[i, j]
+        jprev = y[i, j]
+
+        if iprev == i       
+            j = jprev
+
+        elseif jprev == j   # Gap 
+            i = iprev
+
+        else                # match
+
+            # check if residue exact match
+            i = iprev
+            j = jprev
+        end
+
+        k += 1
+
+    end
+
+    percentid = 100 * (id / k)
+    """
 end
 
 """
