@@ -1,16 +1,13 @@
 #! /usr/bin/env julia
 
 """
-# ALIGNMENT
-# implementation of Global Alignment 
+# implementation of Global Alignment: 
 # Needleman-Wunsch algorithm 
 # -----------------------------------------------------
 
 usage:  align < INFILE > OUTFILE
 
 evolve < INFILE | align > OUTFILE 
-
-
 
 # Treats first sequence as 'reference' sequence; compares all sequences to this first sequence
 # Outputs alignment number, score, and percentage identity (tab-delimited)
@@ -56,13 +53,14 @@ const MATRIX = [
 const GAP_OPEN = 7
 const GAP_EXTEND = 1
 
-# 'Enum' for pointer matrix 
+# 'Enum' for pointer matrix.  Used to store the 'direction' such that backtracing (building the alignment)
+# can occur, since we need to know the 'path' in which the optimal sub-problems lead
 const POINTER_DIAGONAL = 1
 const POINTER_INSERTX  = 2
 const POINTER_INSERTY   = 3
 
 """
-Get index for matrix from letter.  TODO Change back to AA
+Get index for matrix from AA letter code.  
 """
 function getindex(a::Char)
     for i in 1:length(SUBSTITUTIONS)
@@ -76,7 +74,6 @@ end
 Get score for match / mismatch.
 """
 function matchscore(a::Char, b::Char)
-
     i = getindex(a)
     j = getindex(b)
     return MATRIX[i, j]
@@ -91,12 +88,10 @@ function align(a::Vector{Char}, b::Vector{Char})
     n = length(b) + 1
 
     # Create matrices 
-    S =     Matrix(undef, m, n)
-    Ix =    Matrix(undef, m, n)
-    Iy =    Matrix(undef, m, n)
-    Px  =   Matrix(undef, m, n)
-    Py  =   Matrix(undef, m, n)
-    P  =   Matrix(undef, m, n)
+    S   = Matrix(undef, m, n)   # Substitution matrix 
+    Ix  = Matrix(undef, m, n)   # 'insertion in x' matrix (gap in y)
+    Iy  = Matrix(undef, m, n)   # 'insertion in y' matrix (gap in x) 
+    P   = Matrix(undef, m, n)   # Poitner matrix 
 
     # Initialise to minus infinity to ensure 'max' is chosen (certain cells in matrices might be undefined)
     for i in 1:m 
@@ -104,20 +99,18 @@ function align(a::Vector{Char}, b::Vector{Char})
             S[i, j]     = -Inf
             Ix[i, j]    = -Inf
             Iy[i, j]    = -Inf 
-            Px[i, j]    = 0
-            Py[i, j]    = 0
-            P[i, j]     = 0
+            P[i, j]     = 0     # We use 0 as it cannot be used as an index 
         end
     end
 
-    # INITIALISE ORIGIN
+    # Initialise origin
     S[1, 1] = 0 
     Ix[1, 1] = 0
     Iy[1, 1] = 0
     
     # Initialise left-hand column
-    S[2, 1] = -GAP_OPEN 
-    Iy[2, 1] = -GAP_OPEN
+    S[2, 1]     = -GAP_OPEN 
+    Iy[2, 1]    = -GAP_OPEN
     for i in 3:m 
         val = S[i-1, 1] - GAP_EXTEND 
         S[i, 1] = val 
@@ -133,65 +126,41 @@ function align(a::Vector{Char}, b::Vector{Char})
         Ix[1, j] = val
     end
 
+    # Fill in every point in each matrix
     for i in 2:m 
         for j in 2:n
 
-            # Set S to be max(continue match, end insertion in x, end insertion in y)
+            # We need to set S[i, j] to be max(continue match, end insertion in x, end insertion in y)
+            match = matchscore(a[i-1], b[j-1])  # index a and b with -1 to account for index offset
 
-             # index a and b with -1 to account for index offset
-            match = matchscore(a[i-1], b[j-1])
-
-            paths = [S[i-1, j-1] + match,   # DIAGONAL
+            # All possible 'paths' to this current cell.  We consider the one that yields the maximum score
+            paths = [S[i-1, j-1] + match,       # DIAGONAL (match)
                     Ix[i-1, j-1] + match,       # INSERTION IN X
                     Iy[i-1, j-1] + match]       # INSERTION IN Y
 
-            # Store the co-ordinates from which we 'arrived' at this cell (i.e. save the best path we took that gave us the 
-            # max score)
-
+            # Store the path from which we 'arrived' at this cell 
+            # (i.e. save the best path we took that gave us the max score)
             pathindex = Int(argmax(paths))
             S[i, j] = paths[pathindex] # store max value in S 
-
-            P[i, j] = pathindex
-            # 'Diagonal' case
-            if pathindex == 1
-
-                
-
-                Px[i, j] = i-1 
-                Py[i, j] = j-1
-            
-            # Insertion in X (gap in Y)
-            # We decrement back along X (sequence A) while leaving a gap in Y
-            elseif pathindex == 2
-                Px[i, j] = i-1 
-                Py[i, j] = j
-            
-            # Insertion in Y (gap in X)
-            # We decrement back along Y (sequence B) while leaving a gap in X
-            elseif pathindex == 3
-                Px[i, j] = i 
-                Py[i, j] = j-1
-
-            end
-                
-                        
+            P[i, j] = pathindex        # store previous cell's 'direction' for traceback
+                 
             # Set Ix 
             Ix[i, j] =  max(S[i-1, j] - GAP_OPEN,
                             Ix[i-1, j] - GAP_EXTEND)
-
+            # Set Iy
             Iy[i, j] =  max(S[i, j-1] - GAP_OPEN, 
                             Iy[i, j-1] - GAP_EXTEND)
-
         end
     end
 
-    #display(S)
-
-    # Backtracing
-    aout = []
-    bout = []
-
-    
+    # BACKTRACING
+    # We choose the last (bottom right) cell in S as our score. 
+    # We set our pointers (i and j) to point to this cell; and look at 
+    # Our pointer matrix P to determine which 'direction' backwards 
+    # we need to traverse in order to build the alignment (going backwards). 
+    # Each value in P shows the 'previous' cell from which the best score 
+    # was selected. 
+  
     i = m 
     j = n 
 
@@ -210,128 +179,22 @@ function align(a::Vector{Char}, b::Vector{Char})
             i -= 1
             j -= 1
 
-            push!(aout, a[iprev-1])
-            push!(bout, b[jprev-1])
-
-            # Check if match 
+            # Check if exact residue match 
             if a[iprev-1] == b[jprev-1]
                 id += 1
             end 
-
         elseif P[i, j] == POINTER_INSERTX 
-
             i -= 1 
-            push!(aout, a[iprev-1])
-            push!(bout, '-')
-
         elseif P[i, j] == POINTER_INSERTY 
-
             j -= 1
-            push!(bout, b[jprev-1])
-            push!(aout, '-')
-
         end
 
         k += 1  # increment counter 
-
     end 
 
+    # Get identity as a percentage
     percentid = 100 * (id / k) 
     return score, percentid
-
-    
-
-
-    #=
-    i = m
-    j = n 
-    while i > 1 && j > 1
-
-        iprev = i 
-        jprev = j
-
-        if i == iprev
-            print("-")
-        elseif j == jprev 
-            print(a[i-1])
-        else 
-            print(a[i-1])
-        end
-        
-        if i == 0 || j == 0
-            break
-        end
-        i = Px[i, j]
-        j = Py[i, j]
-    end
-    =#
-
-
-        
-
-
-
-
-
-    
-
-    #=
-    for i in 1:m 
-        for j in 1:n 
-            S[i, j] = -1
-        end
-    end
-    =#
-
-
-    """
-
-    For i 
-        for j 
-
-            down =      # work out affine; i.e. if previous had gap opening or what
-            across = 
-
-            S[i, j] = min(diagonal + score(i, j), down, up)
-            
-            assign x, y
-
-
-    """
-
-
-    # 
-    """
-    Traceback 
-    
-    i = m+1
-    j = n+1
-    k = 0   # alignment length 
-    id = 0  # count of identical residues matches
-
-    while (i > 1 or j > 1) 
-        iprev = x[i, j]
-        jprev = y[i, j]
-
-        if iprev == i       
-            j = jprev
-
-        elseif jprev == j   # Gap 
-            i = iprev
-
-        else                # match
-
-            # check if residue exact match
-            i = iprev
-            j = jprev
-        end
-
-        k += 1
-
-    end
-
-    percentid = 100 * (id / k)
-    """
 end
 
 """
@@ -384,11 +247,10 @@ function main()
 
         score, id = align(seq, REFSEQ)
 
-        # Output
+        # Output line containing data
         println("$n\t$score\t$id")
         
-        n += 1
-        
+        n += 1  # increment counter   
     end    
 end
 
