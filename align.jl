@@ -5,6 +5,9 @@
 # -----------------------------------------------------
 
 # usage:  align < INFILE > OUTFILE 
+# 
+# Treats first sequence as 'reference' sequence; compares all sequences to this first sequence
+# Outputs alignm
 
 julia version 1.6.2
 
