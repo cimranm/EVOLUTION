@@ -1,14 +1,5 @@
 #! /usr/bin/env julia
 
-"""TODO
-
-- don't show stacktrace when throwing error
-- convert to uppercase?
-
-"""
-
-
-
 """
 # ALIGNMENT
 # implementation of Global Alignment 
@@ -68,6 +59,11 @@ const MATRIX = [
 const GAP_OPEN = 2
 const GAP_EXTEND = 1
 
+# 'Enum' for pointer matrix 
+const POINTER_DIAGONAL = 1
+const POINTER_INSERTX  = 2
+const POINTER_INSERTY   = 3
+
 """
 Get index for matrix from letter.  TODO Change back to AA
 """
@@ -105,13 +101,19 @@ function align(a::Vector{Char}, b::Vector{Char})
     S =     Matrix(undef, m, n)
     Ix =    Matrix(undef, m, n)
     Iy =    Matrix(undef, m, n)
+    Px  =   Matrix(undef, m, n)
+    Py  =   Matrix(undef, m, n)
+    P  =   Matrix(undef, m, n)
 
     # Initialise to minus infinity to ensure 'max' is chosen (certain cells in matrices might be undefined)
     for i in 1:m 
         for j in 1:n 
-            S[i, j] = -Inf
-            Ix[i, j] = -Inf
-            Iy[i, j] = -Inf 
+            S[i, j]     = -Inf
+            Ix[i, j]    = -Inf
+            Iy[i, j]    = -Inf 
+            Px[i, j]    = 0
+            Py[i, j]    = 0
+            P[i, j]     = 0
         end
     end
 
@@ -148,9 +150,40 @@ function align(a::Vector{Char}, b::Vector{Char})
 
              # index a and b with -1 to account for index offset
             match = matchscore(a[i-1], b[j-1])
-            S[i, j] =   max(S[i-1, j-1] + match,
-                        Ix[i-1, j-1] + match,
-                        Iy[i-1, j-1] + match)  
+
+            paths = [S[i-1, j-1] + match,   # DIAGONAL
+                    Ix[i-1, j-1] + match,       # INSERTION IN X
+                    Iy[i-1, j-1] + match]       # INSERTION IN Y
+
+            # Store the co-ordinates from which we 'arrived' at this cell (i.e. save the best path we took that gave us the 
+            # max score)
+
+            pathindex = Int(argmax(paths))
+            S[i, j] = paths[pathindex] # store max value in S 
+
+            P[i, j] = pathindex
+            # 'Diagonal' case
+            if pathindex == 1
+
+                
+
+                Px[i, j] = i-1 
+                Py[i, j] = j-1
+            
+            # Insertion in X (gap in Y)
+            # We decrement back along X (sequence A) while leaving a gap in Y
+            elseif pathindex == 2
+                Px[i, j] = i-1 
+                Py[i, j] = j
+            
+            # Insertion in Y (gap in X)
+            # We decrement back along Y (sequence B) while leaving a gap in X
+            elseif pathindex == 3
+                Px[i, j] = i 
+                Py[i, j] = j-1
+
+            end
+                
                         
             # Set Ix 
             Ix[i, j] =  max(S[i-1, j] - GAP_OPEN,
@@ -162,7 +195,76 @@ function align(a::Vector{Char}, b::Vector{Char})
         end
     end
 
-    display(S)
+    # Backtracing
+    aout = []
+    bout = []
+
+    
+    i = m 
+    j = n 
+    
+    while i > 1 && j > 1 
+
+        iprev = i  
+        jprev = j 
+
+        if P[i, j] == POINTER_DIAGONAL 
+
+            i -= 1
+            j -= 1
+
+            push!(aout, a[iprev-1])
+            push!(bout, b[jprev-1])
+
+        elseif P[i, j] == POINTER_INSERTX 
+
+            i -= 1 
+            push!(aout, a[iprev-1])
+            push!(bout, '-')
+
+        elseif P[i, j] == POINTER_INSERTY 
+
+            j -= 1
+            push!(bout, b[jprev-1])
+            push!(aout, '-')
+
+        end
+
+    end 
+
+    println(join(aout))
+    println(join(bout))
+
+
+    #=
+    i = m
+    j = n 
+    while i > 1 && j > 1
+
+        iprev = i 
+        jprev = j
+
+        if i == iprev
+            print("-")
+        elseif j == jprev 
+            print(a[i-1])
+        else 
+            print(a[i-1])
+        end
+        
+        if i == 0 || j == 0
+            break
+        end
+        i = Px[i, j]
+        j = Py[i, j]
+    end
+    =#
+
+
+        
+
+
+
 
 
     
