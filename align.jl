@@ -1,7 +1,8 @@
 #! /usr/bin/env julia
 """
 # ALIGNMENT
-# implementation of Global Alignment algorithm 
+# implementation of Global Alignment 
+# Needleman-Wunsch algorithm 
 # -----------------------------------------------------
 
 # usage:  align < INFILE > OUTFILE 
@@ -46,3 +47,75 @@ const BLOSUM62 = [
     -1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1 	-1
     -2 	-3 	-2 	-3 	-2 	3 	-3 	2 	-1 	-2 	-1 	-1 	-2 	-3 	-1 	-2 	-2 	-2 	-1 	2 	-1 	7 	-2
     -1 	2 	-4 	2 	5 	-3 	-2 	0 	-3 	1 	-3 	-2 	0 	-1 	2 	0 	0 	-1 	-2 	-3 	-1 	-2 	5]
+
+
+"""
+Align two sequences. 
+"""
+function align(a::Vector{Char}, b::Vector{Char})
+
+    m = length(a)
+    n = length(b)
+end
+
+"""
+Check that AA sequence is valid. 
+"""
+function validate(seq::Vector{Char})
+
+    for c in seq
+        if c ∉ SUBSTITUTIONS
+            error("Not a valid amino acid: $c")
+        end
+    end
+end
+
+"""
+Main function.
+"""
+function main()
+
+    # Read FASTA formatted sequences from STDIN 
+    r = FASTA.Reader(stdin)
+
+    # Store all FASTA records 
+    records = []
+    sequences = []
+    for record in r 
+        push!(records, record)
+        push!(sequences, sequence(record))
+    end 
+
+    # Handle invalid input
+    if length(records) < 1
+        error("No sequence given.")
+    end 
+
+    # Save the 'reference' sequence (first one input)
+    rec = records[1]
+    id = identifier(rec)
+    seq = sequence(rec)
+    seq = convert(String, seq)  # Represent our sequence as a String 
+
+    REFSEQ = Vector{Char}(seq)
+    validate(REFSEQ)           # Check for invalid letter codes
+
+
+    for seq in sequences
+
+        #alignment = align(seq, REFSEQ)
+
+        # Output
+        n = 1
+        score = 2
+        id = 0.80
+        println("$n\t$score\t$id")
+        
+    end
+
+        # TODO make 'alignment' object? so you can do 
+        # alignment.getscore() or something?
+end
+
+# Run main function
+main()
